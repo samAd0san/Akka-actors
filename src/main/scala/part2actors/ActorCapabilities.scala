@@ -65,4 +65,109 @@ object ActorCapabilities extends App {
 
   alice ! WirelessPhoneMessage("Hi", bob) // [Actor[akka://actorCapabilitiesDemo/user/bob#-1318655697]] I have received a message: His
   // bob receives "His" forwarded by alice with the original sender preserved.
+
+  /*
+  Exercise
+  1. a Counter actor
+    - Increment
+    - Decrement
+    - Print
+   */
+  object Counter {
+    case object Increment
+    case object Decrement
+    case object Print
+  }
+
+  class Counter extends Actor {
+    import Counter._
+    var count = 0
+
+    override def receive: Receive = {
+      case Increment => count += 1
+      case Decrement => count -= 1
+      case Print => println(s"[Counter] My Count is $count")
+    }
+  }
+
+  val counter = system.actorOf(Props[Counter],"myCounter")
+  import Counter._
+  (1 to 10).foreach(_ => counter ! Increment) // Incrementing 5 times
+  (1 to 6).foreach(_ => counter ! Decrement) // Decrementing 3 times
+  counter ! Print // 2
+
+  /*
+  * 2. a Bank account as an actor
+      receives
+      - Deposit an amount
+      - Withdraw an amount
+      - Statement
+      replies with
+      - Success
+      - Failure
+      * For the Person interact with some other kind of actor
+   */
+
+  object BankAccount {
+    case class Deposit(amount: Int)
+    case class Withdraw(amount: Int)
+    case object Statement
+
+    case class TransactionSuccess(message: String)
+    case class TransactionFailure(reason: String)
+  }
+
+  // Creating an actor for Bank Account
+  class BankAccount extends Actor {
+
+    import BankAccount._
+
+    var funds = 0
+
+    override def receive: Receive = {
+      case Deposit(amount) =>
+        // sender() is predefined in Akka and refers to the actor that sent the current message.
+        if (amount < 0) sender() ! TransactionFailure("Enter valid amount")
+        else {
+          funds += amount
+          sender() ! TransactionSuccess(s"Amount Deposited $amount")
+        }
+
+      case Withdraw(amount) =>
+        if (amount < 0) sender() ! TransactionFailure("Enter Valid amount")
+        else if (amount > funds) sender() ! TransactionFailure("Insufficient Balance")
+        else {
+          funds -= amount
+          sender() ! TransactionSuccess(s"Amount withdrew $amount")
+        }
+
+      case Statement => sender() ! s"Your Balance is $funds"
+    }
+  }
+  // Creating an actor for user who performs txns
+  object Person {
+    case class LiveTheLife(account: ActorRef)
+  }
+
+  class Person extends Actor {
+    import Person._
+    import BankAccount._
+
+    override def receive: Receive = {
+      case LiveTheLife(account) =>
+        // Performing txns
+        account ! Deposit(10_000) // TransactionSuccess(Amount Deposited 10000)
+        account ! Withdraw(90_000) // TransactionFailure(Insufficient Balance)
+        account ! Withdraw(500) // TransactionSuccess(Amount withdrew 500)
+        account ! Statement // Your Balance is 9500
+        account ! Withdraw(1490) // TransactionSuccess(Amount withdrew 1490)
+        account ! Statement // Your Balance is 8010
+
+      case message => println(message.toString)
+    }
+  }
+  val account = system.actorOf(Props[BankAccount],"bankAccount")
+  val person = system.actorOf(Props[Person],"billionaire")
+
+  person ! Person.LiveTheLife(account)
 }

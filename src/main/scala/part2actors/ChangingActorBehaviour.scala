@@ -21,17 +21,24 @@ object ChangingActorBehaviour extends App {
     val SAD = "sad"
   }
 
-  class FussyKid extends Actor {
+  class StatelessFussyKid extends Actor {
     import FussyKid._
     import Mom._
 
-    var state = HAPPY
-    override def receive: Receive = {
-      case Food(VEGETABLE) => state = SAD
-      case Food(CHOCOLATE) => state = HAPPY
-      case Ask(_) =>
-        if (state == HAPPY) sender() ! KidAccept
-        else sender() ! KidReject
+    override def receive:Receive = happyReceive
+
+    def happyReceive : Receive = {
+      // The false flag means the new behavior does not stack on the previous one; it replaces it.
+      case Food(VEGETABLE) => context.become(sadReceive, false)
+      case Food(CHOCOLATE) => // Remain happy, do nothing
+      case Ask(_) => sender() ! KidAccept
+    }
+
+    def sadReceive : Receive = {
+      case Food(VEGETABLE) => context.become(happyReceive, false)
+      // context.unbecome(): Reverts the actor's behavior to the previous one in the stack.
+      case Food(CHOCOLATE) => context.unbecome()
+      case Ask(_) => sender() ! KidReject
     }
   }
 
@@ -51,6 +58,9 @@ object ChangingActorBehaviour extends App {
       case MomStart(kidRef) =>
         // test our interaction
         kidRef ! Food(VEGETABLE)
+        kidRef ! Food(VEGETABLE)
+        kidRef ! Food(CHOCOLATE)
+        kidRef ! Food(CHOCOLATE) // -> yay, my kid is happy
         kidRef ! Ask("Do you wanna build a snow man?")
 
       case KidAccept => println("yay, my kid is happy")
@@ -59,8 +69,22 @@ object ChangingActorBehaviour extends App {
   }
 
   val system = ActorSystem("changingActorBehaviourDemo")
-  val fussyKid = system.actorOf(Props[FussyKid])
+  val fussyKid = system.actorOf(Props[StatelessFussyKid])
   val mom = system.actorOf(Props[Mom])
 
   mom ! MomStart(fussyKid)
+  /*
+   mom receives MomStart
+     kid receives Food(veg) -> kid will change the handler to sadReceive
+     kid receives Ask(play?) -> kid replies with the sadReceive handler =>
+   mom receives KidReject
+  */
+  /*
+    Stateless fussyKid case
+    Initial:         happyReceive
+    Food(VEG):       sadReceive  // context.become(sadReceive, false)
+    Food(VEG):       happyReceive // context.become(happyReceive, false)
+    Food(CHOCOLATE): happyReceive // context.unbecome(), but no change as it's already happyReceive
+    Food(CHOCOLATE): happyReceive // unchanged
+   */
 }

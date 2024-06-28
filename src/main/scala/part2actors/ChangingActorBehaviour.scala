@@ -122,62 +122,75 @@ object ChangingActorBehaviour extends App {
   Exercise 2 - Voting System
   */
 
-  // Defining the methods that will be used by the actors to communicate
-  case class Vote(candidate: String) // Vote is used to send a candidate's name to the Citizen actor,
-  // indicating that the citizen is casting a vote for that candidate.
+  case class Vote(candidate: String)
+  case object VoteStatusRequest
+  case class VoteStatusReply(candidate: Option[String])
 
-  case object VoteStatusRequest // It is used to request the voting status of a citizen from the Citizen actor.
-
-  /* Option[String] is used as an argument to handle the possibility that a citizen may
-  not have voted yet, representing a vote with Some(candidate) or no vote with None. */
-  case class VoteStatusReply(candidate: Option[String]) //  is used to respond with the voting status of a citizen,
-  // indicating which candidate (if any) they voted for.
-
-  /* Actor 1 */
-  // This actor will handle voting and responding to vote status requests.
+  // Creating an actor for Citizen
   class Citizen extends Actor {
-    // This variable can store only one value: either None or Some(String)
-    var candidate: Option[String] = None // Initially, no vote
 
+    // Initial behavior of the Citizen actor ( i.e before voting)
     override def receive: Receive = {
-      // Store the candidate when voting
-      case Vote(c) => candidate = Some(c) // e.g Some("Martin")
-      // Reply with the voting status
-      case VoteStatusRequest => sender() ! VoteStatusReply(candidate) //  when a VoteStatusRequest is received, the Citizen actor
-      // replies to the sender with the current voting status (either None or Some(candidate)).
+      // When the actor receives a Vote message, it changes its behavior
+      case Vote(c) =>
+      // context.become(voted(c)) changes the behavior of the actor to the 'voted' state with the specified candidate
+        context.become(voted(c))
+
+      // When the actor receives a VoteStatusRequest message, it responds with VoteStatusReply(None)
+      case VoteStatusRequest =>
+        // Since the actor has not yet voted it'll reply with null
+        sender() ! VoteStatusReply(None)
+    }
+
+    // Behavior after the citizen has voted for a candidate
+    def voted(candidate: String): Receive = {
+      // When the actor receives a VoteStatusRequest message in the 'voted' state,
+      // it responds with VoteStatusReply(Some(candidate))
+      case VoteStatusRequest =>
+      // It replies with Some(candidate), indicating the candidate they voted for
+        sender() ! VoteStatusReply(Some(candidate))
     }
   }
 
+  // This message class is used to start the aggregation process, containing a set of citizen actor references.
+  case class AggregateVotes(citizens: Set[ActorRef])
 
-  // It is used to initiate the process of collecting votes from a set of Citizen actors.
-  case class AggregateVotes(citizens: Set[ActorRef]) // We are taking Set to ensure each citizen actor is
-  // unique and to prevent duplicate entries.
 
-  /* Actor 2 */
-  // This actor will aggregate votes from a set of citizens and print the results.
   class VoteAggregator extends Actor {
-  // To track citizens who haven't replied.
-  var stillWaiting: Set[ActorRef] = Set()
+    // Initial behavior of the VoteAggregator actor
+    override def receive: Receive = awaitingCommand
 
-  // To Track vote counts
-  var currentStats: Map[String, Int] = Map()
+    // The 'awaitingCommand' behavior, waiting for the command to start aggregation
+    def awaitingCommand: Receive = {
+      case AggregateVotes(citizens) =>
+      // Send a VoteStatusRequest to each citizen
+        citizens.foreach(citizenRef => citizenRef ! VoteStatusRequest)
+      // Change the behavior to 'awaitingStatuses' with the set of citizens and an empty currentStats map
+        context.become(awaitingStatuses(citizens,Map()))
+    }
 
-  override def receive: Receive = {
-    case AggregateVotes(citizens) =>
-      stillWaiting = citizens // Set the citizens who need to apply
-      citizens.foreach(citizenRef => citizenRef ! VoteStatusRequest) // Ask each citizen for their vote
+    // The 'awaitingStatuses' behavior, waiting for responses from the citizens
+    def awaitingStatuses(stillWaiting: Set[ActorRef], currentStats: Map[String, Int]): Receive = {
+    // When a citizen replies with None, indicating they haven't voted yet
+    case VoteStatusReply(None) =>
+    // Request the vote status again (may cause an infinite loop if a citizen never votes)
+      sender() ! VoteStatusRequest
 
+    // When a citizen replies with Some(candidate), indicating they have voted
     case VoteStatusReply(Some(candidate)) =>
-      val newStillWaiting = stillWaiting - sender() // // Remove the citizen from the waiting list
-      // This returns the count of the candidate
-      val currentVotesOfCandidates = currentStats.getOrElse(candidate, 0) // Get the current vote count for the candidate
+      // Remove the citizens from the waiting list
+      val newStillWaiting = stillWaiting - sender()
+      // Get the current vote count for the candidate, defaulting to 0 if the candidate is not yet in the map
+      val currentVoteCandidate = currentStats.getOrElse(candidate, 0)
+      // Update the stats with the new vote count for the candidate
+      val newStats = currentStats + (candidate -> (currentVoteCandidate + 1))
 
-      currentStats = currentStats + (candidate -> (currentVotesOfCandidates + 1)) // // Update the vote count
-
-      if(newStillWaiting.isEmpty) {
-        println(s"[aggregator] poll stats: $currentStats") // Print the final results if all have replied
-      }else{
-        stillWaiting = newStillWaiting // // Update the waiting list
+      // If no citizens are left to respond
+      if (newStillWaiting.isEmpty) {
+        println(s"[aggregator] poll stats: $newStats")
+      } else {
+        // If there are still citizens to respond, update the behavior with the new stillWaiting set and newStats map
+        context.become(awaitingStatuses(newStillWaiting,newStats))
       }
     }
   }

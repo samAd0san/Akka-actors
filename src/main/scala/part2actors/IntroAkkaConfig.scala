@@ -17,3 +17,8 @@ class AkkaConfigActor extends Actor with ActorLogging {
       log.info(s"Received Message: $message")
   }
 }
+
+/*
+Output
+[INFO] [06/30/2024 14:16:12.320] [MySystem-akka.actor.default-dispatcher-6] [akka://MySystem/user/myAkkaConfigActor] Received Message: Hello, Akka
+ */

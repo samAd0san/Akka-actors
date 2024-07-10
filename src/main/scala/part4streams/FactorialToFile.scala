@@ -20,7 +20,7 @@ object FactorialToFile extends App {
   import system.dispatcher
 
   // How to start a stream of data.
-  val source: Source[Int, NotUsed] = Source(1 to 100) //  Creates a Source that generates a stream of integers from 1 to 100.
+  val source: Source[Int, NotUsed] = Source(1 to 5) //  Creates a Source that generates a stream of integers from 1 to 100.
 
   // How to perform a cumulative operation on stream data.
   val factorials = source.scan(BigInt(1))((acc, next) => acc * next) // Uses the scan operator to compute the

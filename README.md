@@ -1,3 +1,5 @@
+# Why Akka
+- While other technologies can offer concurrency and distributed systems features, Akka stands out because it provides a comprehensive toolkit for building resilient, scalable applications through its actor model for concurrency, Akka Streams for data processing with backpressure, and Akka Cluster for distributed systems management. Akka’s built-in mechanisms for supervision, message passing, and location transparency make it easier to develop complex, fault-tolerant systems with minimal boilerplate code. Additionally, Akka’s modular design and mature ecosystem support a wide range of use cases from simple applications to complex microservices architectures.
 # Akka Actors
 - Akka is a toolkit and runtime for building highly concurrent, distributed, and resilient message-driven applications on the JVM.<br><br>
 

@@ -1,5 +1,5 @@
 package docs.ActorsIntro
-
+/** This is Akka Typed (not Akka classic) */
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.LoggerOps
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}

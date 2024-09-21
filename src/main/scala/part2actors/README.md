@@ -1,6 +1,9 @@
 # Actor System
 - An ActorSystem in Akka is a container for actors, managing their lifecycle and providing the necessary infrastructure for their communication. Setting up an ActorSystem is the first step in using Akka actors.
 
+# Actor
+An actor in Akka is a fundamental unit of computation that encapsulates state and behavior. Actors communicate with each other by sending and receiving messages asynchronously. Each actor processes one message at a time, ensuring thread safety without needing low-level concurrency tools like locks.
+
 # Changing Actor Behaviour
 ### Part 1
 - Changing actor behavior isn't explicitly used. Instead, the FussyKid actor's behavior changes implicitly by modifying its internal state (HAPPY or SAD) based on the messages it receives (either Food(VEGETABLE) or Food(CHOCOLATE)). This internal state affects how the actor responds to Ask messages, leading to different responses (KidAccept or KidReject) based on the current state.

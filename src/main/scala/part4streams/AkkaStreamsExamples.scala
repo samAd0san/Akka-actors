@@ -18,7 +18,7 @@ object AkkaStreamsExamples extends App {
   // Applying map function
   val mappedSource = source.map(_ * 2) // Multiply each element by 2
   // Applying filter function
-  val filteredSource: Source[Int, NotUsed] = mappedSource.filter(_ % 3 == 0) // Filter out elements that are not divisible by 3
+  val filteredSource: Source[Int, NotUsed] = mappedSource.filter(_ % 3 == 0) // Filter out elements that are divisible by 3
   // print the results
   filteredSource.runForeach(println) // 6 12 18
 

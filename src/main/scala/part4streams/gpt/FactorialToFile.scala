@@ -1,4 +1,4 @@
-package part4streams
+package part4streams.gpt
 
 import akka.NotUsed
 import akka.actor.ActorSystem

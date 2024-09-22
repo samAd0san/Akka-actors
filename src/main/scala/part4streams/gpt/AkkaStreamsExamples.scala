@@ -1,4 +1,4 @@
-package part4streams
+package part4streams.gpt
 
 import akka.NotUsed
 import akka.actor.ActorSystem
@@ -6,7 +6,6 @@ import akka.stream.scaladsl.{FileIO, Framing, Sink, Source}
 import akka.util.ByteString
 
 import java.nio.file.Paths
-import scala.reflect.io.Path
 
 object AkkaStreamsExamples extends App {
   // Set up ActorSystem

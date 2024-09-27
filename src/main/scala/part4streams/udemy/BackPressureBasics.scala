@@ -37,7 +37,7 @@ object BackPressureBasics extends App {
   fastSource.async
     .via(bufferedFlow).async
     .to(slowSink)
-    .run()
+//    .run()
 
   /*
     1-16: nobody is backpressured

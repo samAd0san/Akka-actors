@@ -1,5 +1,5 @@
 package part2actors
-
+// lecture 1
 import akka.actor.{Actor, ActorSystem, Props}
 
 object ActorsIntro extends App {
@@ -18,11 +18,12 @@ object ActorsIntro extends App {
     // update internal state based on the messages they receive.
     var totalWords = 0
 
-    // Behavior -
+    // Behavior - is a functional interface that defines how an actor handles messages.
     def receive: Receive = { // type Receive = PartialFunction[Any, Unit] i.e It takes Any type but only return Unit
       case message: String =>
         println(s"I have received a message: $message")
         totalWords += message.split(" ").length
+        println(s"Total words of ${self.path.name} is $totalWords")
 
       case msg => println(s"I cannot understand ${msg.toString}")
     }

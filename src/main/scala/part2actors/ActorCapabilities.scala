@@ -1,5 +1,5 @@
 package part2actors
-
+// lecture 2
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 
 object ActorCapabilities extends App {
@@ -25,7 +25,7 @@ object ActorCapabilities extends App {
   }
 
   // creating actor system
-  val system = ActorSystem("actorCapabilitiesDemo") // the name is quotes is unique
+  val system = ActorSystem("actorCapabilitiesDemo") // the name in quotes is unique
   val simpleActor = system.actorOf(Props[SimpleActor],"simpleActor")
 
   // 1. We can send messages of any type to actor
@@ -92,8 +92,8 @@ object ActorCapabilities extends App {
 
   val counter = system.actorOf(Props[Counter],"myCounter")
   import Counter._
-  (1 to 10).foreach(_ => counter ! Increment) // Incrementing 5 times
-  (1 to 6).foreach(_ => counter ! Decrement) // Decrementing 3 times
+  (1 to 5).foreach(_ => counter ! Increment) // Incrementing 5 times
+  (1 to 3).foreach(_ => counter ! Decrement) // Decrementing 3 times
   counter ! Print // 2
 
   /*

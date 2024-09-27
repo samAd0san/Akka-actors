@@ -25,7 +25,7 @@ object OperatorFusion extends App {
   val simpleSink = Sink.foreach[Int](println)
 
   // this runs on the SAME ACTOR --> operator/component FUSION
-//  simpleSource.via(simpleFlow).via(simpleFlow2).to(simpleSink).run()
+  simpleSource.via(simpleFlow).via(simpleFlow2).to(simpleSink).run()
 
   // "equivalent" behavior
   class SimpleActor extends Actor {
@@ -40,7 +40,7 @@ object OperatorFusion extends App {
   }
 
   val simpleActor = system.actorOf(Props[SimpleActor])
-//  (1 to 1000).foreach(simpleActor ! _)
+  (1 to 1000).foreach(simpleActor ! _)
 
   val complexFlow = Flow[Int].map {
     x =>
@@ -61,6 +61,6 @@ object OperatorFusion extends App {
   simpleSource.via(complexFlow).async // runs on one actor
     .via(complexFlow2).async // runs on another actor
     .to(simpleSink) // runs on third actor
-//    .run()
+    .run()
 
 }

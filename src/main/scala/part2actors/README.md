@@ -1,6 +1,10 @@
 # Actor System
 - An ActorSystem in Akka is a container for actors, managing their lifecycle and providing the necessary infrastructure for their communication. Setting up an ActorSystem is the first step in using Akka actors.
 
+# Akka Supervisors:
+
+- In Akka, supervisors are responsible for overseeing the lifecycle of child actors. They monitor the health of their children and take appropriate actions when failures occur. This includes restarting failed actors, escalating failures to higher-level supervisors, or stopping the entire supervision hierarchy.
+
 # Actor
 An actor in Akka is a fundamental unit of computation that encapsulates state and behavior. Actors communicate with each other by sending and receiving messages asynchronously. Each actor processes one message at a time, ensuring thread safety without needing low-level concurrency tools like locks.
 

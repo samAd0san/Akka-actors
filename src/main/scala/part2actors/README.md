@@ -1,6 +1,10 @@
 # Actor System
 - An ActorSystem in Akka is a container for actors, managing their lifecycle and providing the necessary infrastructure for their communication. Setting up an ActorSystem is the first step in using Akka actors.
 
+# Akka Supervisors:
+
+- In Akka, supervisors are responsible for overseeing the lifecycle of child actors. They monitor the health of their children and take appropriate actions when failures occur. This includes restarting failed actors, escalating failures to higher-level supervisors, or stopping the entire supervision hierarchy.
+
 # Actor
 An actor in Akka is a fundamental unit of computation that encapsulates state and behavior. Actors communicate with each other by sending and receiving messages asynchronously. Each actor processes one message at a time, ensuring thread safety without needing low-level concurrency tools like locks.
 
@@ -55,3 +59,40 @@ object AkkaConfigDemo extends App {
 [DEBUG] [06/30/2024 11:47:29.706] [main] [akka.serialization.Serialization(akka://MySystem)] Replacing JavaSerializer with DisabledJavaSerializer, due to `akka.actor.allow-java-serialization = off`.
 [INFO] [06/30/2024 11:47:29.726] [MySystem-akka.actor.default-dispatcher-6] [akka://MySystem/user/myAkkaConfigActor] Received Message: Hello, Akka
 ```
+
+### Difference between ask and tell in Akka?
+- 'ask' will send the message and return a future, which can be awaited until timeout or a reply is received.
+- 'tell' will send the message and return immediately.
+
+```
+import akka.actor._
+import akka.util.Timeout
+import scala.concurrent.duration._
+
+class MyActor extends Actor {
+  def receive = {
+    case "hello" => sender() ! "world"
+  }
+}
+
+object Main extends App {
+  val system = ActorSystem("MySystem")
+  val myActor = system.actorOf(Props[MyActor], "myActor")
+
+  // Using `ask`:
+  val future = myActor.ask(Timeout(5 seconds)) {
+    "hello"
+  }
+  future.onComplete {
+    case Success(result) => println(s"Received result: $result")
+    case Failure(e) => println(s"Failed with: $e")
+  }
+
+  // Using `tell`:
+  myActor ! "hello"
+}
+```
+
+**OUTPUT:** ``` Received result: world ```
+
+- The output will be "world" only once. The tell line is not expecting a response, so it doesn't print anything. The ask line, on the other hand, waits for a response and prints it.

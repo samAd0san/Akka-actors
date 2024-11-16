@@ -107,5 +107,38 @@ source
 
 ```
 
-**Alpakka: A Reactive Enterprise Integration Library**
-- Alpakka is a powerful and versatile library designed for building reactive and stream-oriented integration pipelines in Java and Scala. It's built on top of the robust Akka Streams framework, leveraging its strengths in handling asynchronous data flows and backpressure.   
+<h3>Alpakka: A Reactive Enterprise Integration Library</h3>
+- Alpakka is a powerful and versatile library designed for building reactive and stream-oriented integration pipelines in Java and Scala. It's built on top of the robust Akka Streams framework, leveraging its strengths in handling asynchronous data flows and backpressure.  
+
+```
+// This program consumes messages from a Kafka topic named "my-topic" and logs them to the console.
+import akka.actor.ActorSystem
+import akka.kafka.scaladsl.Consumer
+import akka.kafka.{ConsumerSettings, Subscriptions}
+import akka.stream.scaladsl.{Sink, Source}
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+
+import scala.concurrent.duration._
+
+object KafkaConsumerExample extends App {
+
+  // Create an ActorSystem to manage the application's lifecycle
+  implicit val system = ActorSystem("KafkaConsumerExample")
+
+  // Configure Consumer Settings
+  val consumerSettings = ConsumerSettings(system, new StringDeserializer, new StringDeserializer)
+    .withBootstrapServers("localhost:9092") // Replace with your Kafka broker's address
+    .withGroupId("my-consumer-group")
+    .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest") // Start consuming from the beginning of the topic
+
+  // Create a Kafka Consumer Source
+  val consumer = Consumer.plainSource(consumerSettings, Subscriptions.topics("my-topic"))
+    .map(_.value()) // Extract the message value from the Kafka record
+    .log("Received message") // Log the received message to the console
+    .runWith(Sink.ignore) // Consume the message stream without further processing
+
+  // Terminate the ActorSystem
+  system.terminate()
+}
+```

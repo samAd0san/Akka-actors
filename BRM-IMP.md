@@ -4,7 +4,7 @@
 - **Rehydrate:** Imagine refilling a dried-out sponge with water. In a cache, rehydration means loading data back into the cache (e.g., after a restart or error) to make it ready for use again.
 
 ## Connected methods in brm
-**Ist method** ### cacheConfigStream (contains)
+### cacheConfigStream (contains) - PART I
    // kafkaSource creates a Kafka consumer source that reads messages from the configured topics using the settings defined in ConfigLoader.<br>
    1. val **kafkaSource** = b.add(SourceUtil.kafkaConsumerPlainSource(generateId,
           ConfigLoader.kafkaTopicConfigManager,
@@ -23,7 +23,7 @@
    // stream<br>
    **GraphDSL:** **kafkaSource ~> MessageUnMarshallFlow ~> ValidationFlow ~> ProcessSink**
 
-**IInd method** ### cacheDataStream
+### cacheDataStream - PART II
    1. val **kafkaSource** = b.add(SourceUtil.kafkaConsumerPlainSource(generateId,
           ConfigLoader.kafkaTopicConfigManager,
           ConfigLoader.bootStrapServers,
@@ -35,9 +35,9 @@
 
    **GraphDSL:** **kafkaSrouce ~> filterFlow ~> qSink**
 
-**IIIrd method** ### initialize()
+### initialize() - PART III
   1. rehydrate (from utilitiy function)
   2. cacheConfigStream.run()
   3. cacheDataStream.run()
 
-**IVth** ### ProcessInputAttributes and lookupOnCache
+### ProcessInputAttributes and lookupOnCache - PART IV

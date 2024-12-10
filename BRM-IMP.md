@@ -4,14 +4,14 @@
 - **Rehydrate:** Imagine refilling a dried-out sponge with water. In a cache, rehydration means loading data back into the cache (e.g., after a restart or error) to make it ready for use again.
 
 ## Connected methods in brm
-**Ist method cacheConfigStream** (contains)
-   // kafkaSource creates a Kafka consumer source that reads messages from the configured topics using the settings defined in ConfigLoader.
+**Ist method** ### cacheConfigStream (contains)
+   // kafkaSource creates a Kafka consumer source that reads messages from the configured topics using the settings defined in ConfigLoader.<br>
    1. val **kafkaSource** = b.add(SourceUtil.kafkaConsumerPlainSource(generateId,
           ConfigLoader.kafkaTopicConfigManager,
           ConfigLoader.bootStrapServers,
           ConfigLoader.kafkaProps)).out
           
-   // converts JSON messages from Kafka into CacheManagerOp objects
+   // converts JSON messages from Kafka into CacheManagerOp objects<br>
    2. val **MessageUnMarshallFlow** = b.add(FlowUtil.unMarshallFlowWithCallerName[CacheManagerOp]())
    
    3. **validationFlow** (filters cache op (e.g add, remove) by validating their configuration)
@@ -20,10 +20,10 @@
      - **addLookup** with (lookupIndexMap) -> **addCache** (ADD)
      - **removeLookup** with (lookupIndexMap) -> **removeCache** (REMOVE)
 
-   // stream
+   // stream<br>
    **GraphDSL:** **kafkaSource ~> MessageUnMarshallFlow ~> ValidationFlow ~> ProcessSink**
 
-**IInd method cacheDataStream**
+**IInd method** ### cacheDataStream
    1. val **kafkaSource** = b.add(SourceUtil.kafkaConsumerPlainSource(generateId,
           ConfigLoader.kafkaTopicConfigManager,
           ConfigLoader.bootStrapServers,
@@ -35,9 +35,9 @@
 
    **GraphDSL:** **kafkaSrouce ~> filterFlow ~> qSink**
 
-**IIIrd method initialize()**
+**IIIrd method** ### initialize()
   1. rehydrate (from utilitiy function)
   2. cacheConfigStream.run()
   3. cacheDataStream.run()
 
-**IVth ProcessInputAttributes and lookupOnCache**
+**IVth** ### ProcessInputAttributes and lookupOnCache

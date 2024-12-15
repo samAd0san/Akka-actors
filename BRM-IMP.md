@@ -41,3 +41,59 @@
   3. cacheDataStream.run()
 
 ### ProcessInputAttributes and lookupOnCache - PART IV
+
+## Working of cacheKey method in GenericCacheManager.scala
+```
+// GenericCacheManager.scala
+def cacheKey(payload: Map[String, Any], cacheConfig: CacheConfig): String = {
+    cacheConfig.key.headOption match {
+      case Some(k) => payload.getOrElse(k, throw MangoPlainException(s"cacheId: ${cacheConfig.id} key: ${cacheConfig.key} not found in payload: ${payload}")).toString
+      case None => throw MangoPlainException(s"cacheId: ${cacheConfig.id} key: ${cacheConfig.key} not found in payload: $payload")
+    }
+}
+```
+- In this function, cacheKey retrieves a value from the payload map based on the first key defined in the cacheConfig.key list.
+- Example
+```
+val cacheconfig = {
+    CacheConfig(id = "CacheId1", name = "CompromisedIp",
+      cache_type = "MANGO", kafka_topic = Set("mango_plain_test"),
+      eviction_policy = Some(CacheEvictionPolicy("time", Some(1231), None)),
+      lookup_attributes = Set("IP", "IpAddress"),
+      output_attributes = List(), category = "IP",
+      persist = true, snapshot = false,
+      key = List("IP"), active = true,
+      case_sensitive = false)
+}
+// Here key = List("IP") is taken as the cacheKey
+// cacheConfig.key = List("IP") (this is the key to look for).
+// payload = Map("IP" -> "192.168.0.1") (this contains the actual data).
+```
+### How it works:
+1. ```cacheConfig.key.headOption``` retrieves ```"IP"``` (the first key in the list).
+2. ```payload.getOrElse("IP", ...)``` tries to find ```"IP"``` in the payload map.
+   - If found: it returns ```192.168.0.1``` as a string.
+   - If not found: it throws a ```MangoPlainException``` with a descriptive error.
+Result: For the given ```payload``` and ```cacheConfig```, the output will be ```"192.168.0.1".```.
+
+### Test case for cacheKey
+```
+val cacheconfig = {
+    CacheConfig(id = "CacheId1", name = "CompromisedIp",
+      cache_type = "MANGO", kafka_topic = Set("mango_plain_test"),
+      eviction_policy = Some(CacheEvictionPolicy("time", Some(1231), None)),
+      lookup_attributes = Set("IP", "IpAddress"),
+      output_attributes = List(), category = "IP",
+      persist = true, snapshot = false,
+      key = List("IP"), active = true,
+      case_sensitive = false)
+}
+/** Test case for cacheKey */
+"cacheKey" should "retrieve the correct key from the payload" in {
+ val payload = Map("IP" -> "192.168.0.1")
+ val result = GenericCacheManager.cacheKey(payload, cacheconfig)
+
+ // Assert the result
+ result shouldBe "192.168.0.1"
+}
+```

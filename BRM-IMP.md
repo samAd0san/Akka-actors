@@ -97,3 +97,99 @@ val cacheconfig = {
  result shouldBe "192.168.0.1"
 }
 ```
+
+## Working of LookupOnCache
+1. Create a cache
+```json
+{
+    "name": "WHITELIST",
+    "lookup_attributes": [
+      "IP",
+      "IpAddress"
+    ],
+    "eviction_policy": {
+      "eviction_type": "time",
+      "time": 10
+    },
+    "cache_type": "MANGO",
+    "kafka_topic": [
+      "cache_manager_config_updates"
+    ],
+    "key": [
+      "IP"
+    ],
+    "persist": true,
+    "id": "9beebb8a-3b07-4009-b0bc-1dd6da764e33",
+    "snapshot": false,
+    "category": "IPCategories",
+    "case_sensitive": false,
+    "output_attributes": [],
+    "active": true
+}
+```
+
+2. After adding the cache populate it with some data
+```json
+{
+    "cache_id": "9beebb8a-3b07-4009-b0bc-1dd6da764e33",
+    "operation": "add",
+    "data": {
+        "IP": "127.0.0.1"
+    }
+}
+```
+- After populating it with IP -> 127.0.0.1
+```json
+// It'll look like this
+{
+  "name": "WHITELIST",
+  "lookup_attributes": [
+    "IP",
+    "IpAddress"
+  ],
+  "eviction_policy": {
+    "eviction_type": "time",
+    "time": 10
+  },
+  "cache_type": "MANGO",
+  "kafka_topic": [
+    "cache_manager_config_updates"
+  ],
+  "key": [
+    "IP"
+  ],
+  "persist": true,
+  "id": "9beebb8a-3b07-4009-b0bc-1dd6da764e33",
+  "snapshot": false,
+  "category": "IPCategories",
+  "case_sensitive": false,
+  "output_attributes": [],
+  "active": true,
+  "data": {
+    "127.0.0.1": {
+      "IP": "127.0.0.1"
+    }
+  }
+}
+// this particular 'data' field was added from the api (refer brm)
+```
+3. Now doing lookupOnCache
+```json
+{
+    "lookupOn" : "IP", 
+    "keyToSearch" : "127.0.0.1"
+}
+```
+- **keyToSearch** matches the value in the **data** field (e.g., 127.0.0.1), while **lookupOn: IP** specifies the attribute (e.g., IP) in **lookup_attributes** to compare against.
+- In simple words, **keyToSearch** is compared by the **key** of **data** i.e 127.0.0.1 and **lookupOn: IP** is compared by the **IP** of **lookup_attributes**.
+- And if it matches we are returning 'cacheName', 'cacheCategory' and cacheAttr i.e outputAttrubutes.
+```json
+[
+    {
+        "cacheCategory": "IPCategories",
+        "cacheName": "WHITELIST",
+        "cacheAttr": {}
+    }
+]
+```
+- for now in the context of lookupOnCache, the field of "key": ["IP"] is not used, the **key** field is not directly involved; the lookup is based on the **lookup_attributes** and **keyToSearch.**

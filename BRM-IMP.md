@@ -43,7 +43,7 @@
 ### ProcessInputAttributes and lookupOnCache - PART IV
 
 ## Working of cacheKey method in GenericCacheManager.scala
-```
+```scala
 // GenericCacheManager.scala
 def cacheKey(payload: Map[String, Any], cacheConfig: CacheConfig): String = {
     cacheConfig.key.headOption match {
@@ -54,7 +54,7 @@ def cacheKey(payload: Map[String, Any], cacheConfig: CacheConfig): String = {
 ```
 - In this function, cacheKey retrieves a value from the payload map based on the first key defined in the cacheConfig.key list.
 - Example
-```
+```scala
 val cacheconfig = {
     CacheConfig(id = "CacheId1", name = "CompromisedIp",
       cache_type = "MANGO", kafka_topic = Set("mango_plain_test"),
@@ -77,7 +77,7 @@ val cacheconfig = {
 Result: For the given ```payload``` and ```cacheConfig```, the output will be ```"192.168.0.1".```.
 
 ### Test case for cacheKey
-```
+```scala
 val cacheconfig = {
     CacheConfig(id = "CacheId1", name = "CompromisedIp",
       cache_type = "MANGO", kafka_topic = Set("mango_plain_test"),
